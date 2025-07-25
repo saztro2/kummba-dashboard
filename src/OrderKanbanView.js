@@ -1,94 +1,96 @@
-import React, { useState } from 'react';
-import OrderCard from './OrderCard';
-import './OrderKanbanView.css';
+// La URL base para la API de pedidos
+const apiUrl = 'https://kummba-backend.onrender.com/api/orders';
 
-const initialOrders = [
-    { id: 'K1025', time: '19:10h', customer: { name: 'Carlos Pérez' }, items: [{ id: 1, name: 'Perro Caliente', quantity: 2 }, { id: 2, name: 'Salchipapa', quantity: 1 }], total: 32000, payment: { method: 'Tarjeta', paidWith: null } },
-    { id: 'K1024', time: '19:05h', customer: { name: 'Ana Gómez' }, items: [{ id: 3, name: 'Hamburguesa Clásica', quantity: 2 }], total: 45000, payment: { method: 'Efectivo', paidWith: 50000 } }
-];
-
-const OrderKanbanView = () => {
-    const [newOrders, setNewOrders] = useState(initialOrders);
-    const [inProgressOrders, setInProgressOrders] = useState([]);
-    const [readyOrders, setReadyOrders] = useState([]);
-
-    // Mueve de 'Nuevos' a 'En Preparación'
-    const handleAcceptOrder = (orderId) => {
-        const orderToMove = newOrders.find(order => order.id === orderId);
-        if (orderToMove) {
-            setInProgressOrders(current => [orderToMove, ...current]);
-            setNewOrders(current => current.filter(order => order.id !== orderId));
-        }
-    };
-
-    // Mueve de 'En Preparación' a 'Listos'
-    const handleMarkAsReady = (orderId) => {
-        const orderToMove = inProgressOrders.find(order => order.id === orderId);
-        if (orderToMove) {
-            setReadyOrders(current => [orderToMove, ...current]);
-            setInProgressOrders(current => current.filter(order => order.id !== orderId));
-        }
-    };
-
-    // Elimina un pedido de la columna 'Nuevos'
-    const handleRejectOrder = (orderId) => {
-        setNewOrders(current => current.filter(order => order.id !== orderId));
-    };
-
-    // Elimina un pedido de la columna 'Listos' (lo marca como completado)
-    const handleCompleteOrder = (orderId) => {
-        setReadyOrders(current => current.filter(order => order.id !== orderId));
-    };
-
-    return (
-        <div className="kanban-view">
-            {/* Columna de Nuevos Pedidos */}
-            <div className="kanban-column">
-                <div className="column-header"><h2>Nuevos ({newOrders.length})</h2></div>
-                <div className="column-content">
-                    {newOrders.map(order => (
-                        <OrderCard 
-                            key={order.id} 
-                            order={order} 
-                            status="new"
-                            onAcceptOrder={handleAcceptOrder} 
-                            onRejectOrder={handleRejectOrder}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Columna de Pedidos en Preparación */}
-            <div className="kanban-column">
-                <div className="column-header"><h2>En Preparación ({inProgressOrders.length})</h2></div>
-                <div className="column-content">
-                    {inProgressOrders.map(order => (
-                        <OrderCard 
-                            key={order.id} 
-                            order={order} 
-                            status="in-progress"
-                            onMarkAsReady={handleMarkAsReady}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Columna de Pedidos Listos */}
-            <div className="kanban-column">
-                <div className="column-header"><h2>Listos ({readyOrders.length})</h2></div>
-                <div className="column-content">
-                     {readyOrders.map(order => (
-                        <OrderCard 
-                            key={order.id} 
-                            order={order} 
-                            status="ready"
-                            onCompleteOrder={handleCompleteOrder}
-                        />
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
+// Función para obtener los pedidos del servidor
+const fetchOrders = () => {
+    fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => setOrders(data))
+        .catch(error => console.error("Error al obtener pedidos:", error));
 };
 
-export default OrderKanbanView;
+// Usamos useEffect para cargar los pedidos cuando el componente se monta por primera vez
+useEffect(() => {
+    fetchOrders();
+}, []);
+
+// Función genérica para actualizar el estado de un pedido
+const updateOrderStatus = (orderId, newStatus) => {
+    fetch(`${apiUrl}/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(res => res.json())
+    .then(updatedOrder => {
+        // Actualizamos la lista local con el pedido que nos devuelve el servidor
+        setOrders(currentOrders => 
+            currentOrders.map(o => o._id === updatedOrder._id ? updatedOrder : o)
+        );
+    })
+    .catch(error => console.error("Error al actualizar estado:", error));
+};
+
+// Función para eliminar un pedido
+const deleteOrder = (orderId) => {
+    if (window.confirm('¿Marcar este pedido como completado/rechazado?')) {
+        fetch(`${apiUrl}/${orderId}`, { method: 'DELETE' })
+        .then(res => {
+            if (res.ok) {
+                // Eliminamos el pedido de la lista local
+                setOrders(currentOrders => currentOrders.filter(o => o._id !== orderId));
+            }
+        })
+        .catch(error => console.error("Error al eliminar pedido:", error));
+    }
+};
+
+// Filtramos la lista de pedidos para cada columna
+const newOrders = orders.filter(o => o.status === 'new');
+const inProgressOrders = orders.filter(o => o.status === 'in-progress');
+const readyOrders = orders.filter(o => o.status === 'ready');
+
+return (
+    <div className="kanban-view">
+        <div className="kanban-column">
+            <div className="column-header"><h2>Nuevos ({newOrders.length})</h2></div>
+            <div className="column-content">
+                {newOrders.map(order => (
+                    <OrderCard 
+                        key={order._id} 
+                        order={order} 
+                        status="new"
+                        onAcceptOrder={() => updateOrderStatus(order._id, 'in-progress')}
+                        onRejectOrder={() => deleteOrder(order._id)}
+                    />
+                ))}
+            </div>
+        </div>
+        <div className="kanban-column">
+            <div className="column-header"><h2>En Preparación ({inProgressOrders.length})</h2></div>
+            <div className="column-content">
+                {inProgressOrders.map(order => (
+                    <OrderCard 
+                        key={order._id} 
+                        order={order} 
+                        status="in-progress"
+                        onMarkAsReady={() => updateOrderStatus(order._id, 'ready')}
+                    />
+                ))}
+            </div>
+        </div>
+        <div className="kanban-column">
+            <div className="column-header"><h2>Listos ({readyOrders.length})</h2></div>
+            <div className="column-content">
+                {readyOrders.map(order => (
+                    <OrderCard 
+                        key={order._id} 
+                        order={order} 
+                        status="ready"
+                        onCompleteOrder={() => deleteOrder(order._id)}
+                    />
+                ))}
+            </div>
+        </div>
+    </div>
+);
