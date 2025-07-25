@@ -1,0 +1,28 @@
+.switch-container {
+    width: 50px;
+    height: 28px;
+    background-color: #bdc3c7; /* Color gris cuando está apagado */
+    border-radius: 15px;
+    padding: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    position: relative;
+}
+
+.switch-container.on {
+    background-color: #27ae60; /* Color verde cuando está encendido */
+}
+
+.switch-knob {
+    width: 22px;
+    height: 22px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    transition: transform 0.3s ease;
+    transform: translateX(0px); /* Posición inicial (apagado) */
+}
+
+.switch-container.on .switch-knob {
+    transform: translateX(22px); /* Posición final (encendido) */
+}

@@ -1,0 +1,91 @@
+/* Definimos una variable para el color principal de Kummba para usarlo fácilmente */
+:root {
+    --kummba-orange: #D8790F;
+    --dark-grey: #333;
+    --light-grey: #f4f4f4;
+    --error-red: #d93025;
+}
+
+/* Contenedor principal que ocupa toda la pantalla y centra el contenido */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: var(--light-grey);
+    font-family: Arial, sans-serif;
+}
+
+/* La caja blanca del formulario */
+.login-box {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-logo {
+    width: 150px;
+    margin-bottom: 20px;
+}
+
+.login-box h2 {
+    color: var(--dark-grey);
+    margin-bottom: 10px;
+}
+
+.login-box p {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+/* Estilos para los grupos de etiqueta + campo de entrada */
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: bold;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+}
+
+/* El botón de Ingresar */
+.login-button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--kummba-orange);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+    background-color: #c76b0e; /* Un naranja un poco más oscuro */
+}
+
+/* Mensaje de error */
+.error-message {
+    color: var(--error-red);
+    font-size: 14px;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}

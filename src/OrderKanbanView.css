@@ -1,0 +1,34 @@
+.kanban-view {
+    display: flex;
+    gap: 20px; /* Espacio entre las columnas */
+    height: 100%;
+    overflow-x: auto; /* Permite scroll horizontal si las columnas no caben */
+}
+
+.kanban-column {
+    flex: 1; /* Cada columna intenta ocupar el mismo espacio */
+    min-width: 320px; /* Ancho mínimo para que no se aplasten mucho */
+    max-width: 400px; /* Ancho máximo */
+    background-color: #e9ecef; /* Un gris muy suave para el fondo de la columna */
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.column-header {
+    padding: 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+.column-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #343a40;
+    text-align: center;
+}
+
+.column-content {
+    padding: 10px;
+    flex-grow: 1;
+    overflow-y: auto; /* Permite scroll vertical si hay muchos pedidos */
+}
