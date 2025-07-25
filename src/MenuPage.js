@@ -8,8 +8,10 @@ const MenuPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
 
+    // La URL de nuestra API en producción
     const apiUrl = 'https://kummba-backend.onrender.com/api/menu-items';
 
+    // Obtener los datos cuando el componente se carga
     useEffect(() => {
         fetch(apiUrl)
             .then(response => response.json())
