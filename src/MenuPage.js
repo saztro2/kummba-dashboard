@@ -17,80 +17,58 @@ const MenuPage = () => {
             .catch(error => console.error('Error al obtener datos:', error));
     }, []);
 
-    const handleEditClick = (item) => {
-        setEditingItem(item);
-        setIsModalOpen(true);
-    };
-
-    const handleAddClick = () => {
-        setEditingItem(null);
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setEditingItem(null);
-    };
+    const handleEditClick = (item) => { setEditingItem(item); setIsModalOpen(true); };
+    const handleAddClick = () => { setEditingItem(null); setIsModalOpen(true); };
+    const handleCloseModal = () => { setIsModalOpen(false); setEditingItem(null); };
 
     const handleSaveItem = (itemData) => {
-        if (itemData.id) {
-            fetch(`${apiUrl}/${itemData.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(itemData),
-            })
-            .then(response => response.json())
-            .then(updatedItemFromServer => {
-                setMenuItems(currentItems => 
-                    currentItems.map(item => 
-                        item.id === updatedItemFromServer.id ? updatedItemFromServer : item
-                    )
-                );
-                handleCloseModal();
-            })
-            .catch(error => console.error('Error al actualizar el plato:', error));
-        } else {
-            fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(itemData),
-            })
-            .then(response => response.json())
-            .then(newItemFromServer => {
-                setMenuItems(currentItems => [newItemFromServer, ...currentItems]);
-                handleCloseModal();
-            })
-            .catch(error => console.error('Error al guardar el nuevo plato:', error));
-        }
+        const isEditing = !!itemData._id;
+        const url = isEditing ? `${apiUrl}/${itemData._id}` : apiUrl;
+        const method = isEditing ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemData),
+        })
+        .then(response => response.json())
+        .then(savedItem => {
+            if (isEditing) {
+                setMenuItems(current => current.map(item => (item._id === savedItem._id ? savedItem : item)));
+            } else {
+                setMenuItems(current => [savedItem, ...current]);
+            }
+            handleCloseModal();
+        })
+        .catch(error => console.error('Error al guardar:', error));
     };
 
     const handleDeleteItem = (itemIdToDelete) => {
         if (window.confirm('¿Estás seguro de que quieres eliminar este plato?')) {
-            fetch(`${apiUrl}/${itemIdToDelete}`, {
-                method: 'DELETE',
-            })
-            .then(response => {
-                if (response.ok) {
-                    setMenuItems(currentItems => 
-                        currentItems.filter(item => item.id !== itemIdToDelete)
-                    );
-                } else {
-                    alert('No se pudo eliminar el plato.');
-                }
-            })
-            .catch(error => console.error('Error al eliminar el plato:', error));
+            fetch(`${apiUrl}/${itemIdToDelete}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        setMenuItems(current => current.filter(item => item._id !== itemIdToDelete));
+                    } else {
+                        alert('No se pudo eliminar el plato.');
+                    }
+                })
+                .catch(error => console.error('Error al eliminar:', error));
         }
     };
-    
-    // NOTA: Esta función todavía es local. Conectar esto al backend sería un buen siguiente paso.
+
     const handleStatusToggle = (itemIdToToggle) => {
-        setMenuItems(currentItems =>
-            currentItems.map(item =>
-                item.id === itemIdToToggle
-                    ? { ...item, status: item.status === 'available' ? 'unavailable' : 'available' }
-                    : item
-            )
-        );
+        const toggleUrl = `${apiUrl}/${itemIdToToggle}/status`;
+        fetch(toggleUrl, { method: 'PATCH' })
+            .then(response => response.json())
+            .then(updatedItemFromServer => {
+                setMenuItems(currentItems =>
+                    currentItems.map(item =>
+                        item._id === updatedItemFromServer._id ? updatedItemFromServer : item
+                    )
+                );
+            })
+            .catch(error => console.error('Error al cambiar el estado:', error));
     };
 
     return (
@@ -101,29 +79,23 @@ const MenuPage = () => {
             </div>
             <table className="menu-table">
                 <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Categoría</th>
-                        <th>Precio</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
+                    <tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     {menuItems.map(item => (
-                        <tr key={item.id}>
+                        <tr key={item._id}>
                             <td>{item.name}</td>
                             <td>{item.category}</td>
                             <td>${item.price.toLocaleString('es-CO')}</td>
                             <td>
                                 <ToggleSwitch 
                                     isOn={item.status === 'available'}
-                                    handleToggle={() => handleStatusToggle(item.id)}
+                                    handleToggle={() => handleStatusToggle(item._id)}
                                 />
                             </td>
                             <td>
                                 <button className="action-button edit" onClick={() => handleEditClick(item)}>Editar</button>
-                                <button className="action-button delete" onClick={() => handleDeleteItem(item.id)}>Eliminar</button>
+                                <button className="action-button delete" onClick={() => handleDeleteItem(item._id)}>Eliminar</button>
                             </td>
                         </tr>
                     ))}
