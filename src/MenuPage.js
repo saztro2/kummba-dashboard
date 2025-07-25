@@ -8,7 +8,7 @@ const MenuPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
 
-    const apiUrl = 'https://kummba-backend.onrender.com';
+    const apiUrl = 'https://kummba-backend.onrender.com/api/menu-items';
 
     useEffect(() => {
         fetch(apiUrl)
